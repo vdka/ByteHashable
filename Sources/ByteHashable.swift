@@ -41,7 +41,24 @@ extension ByteHashable {
   }
 
   public static func == (lhs: Self, rhs: Self) -> Bool {
-    return lhs.hashValue == rhs.hashValue
+
+    var lhs = lhs
+    var rhs = rhs
+
+    let lhsPointer = withUnsafePointer(to: &lhs) { $0 }
+    let rhsPointer = withUnsafePointer(to: &rhs) { $0 }
+
+    let lhsFirstByte = unsafeBitCast(lhsPointer, to: UnsafePointer<UInt8>.self)
+    let rhsFirstByte = unsafeBitCast(rhsPointer, to: UnsafePointer<UInt8>.self)
+
+    let lhsBytes = UnsafeBufferPointer(start: lhsFirstByte, count: MemoryLayout<Self>.size)
+    let rhsBytes = UnsafeBufferPointer(start: rhsFirstByte, count: MemoryLayout<Self>.size)
+
+    for (leftByte, rightByte) in zip(lhsBytes, rhsBytes) {
+      guard leftByte == rightByte else { return false }
+    }
+
+    return true
   }
 }
 
